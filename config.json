@@ -2,9 +2,12 @@
     "developer": "scarlxrd1337",
     "token": "token",
     "buyer": null,
+    "developer_role_id": null,
     "color": "hex_color",
     "footer": "Your footer",
     "blockcypher": "blockcypher api key",
+    "solana_api_key": "solana api key",
+    "polygon_api_key": "polygon api key",
     "whitelist": [],
     "scammers": [],
     "config": {

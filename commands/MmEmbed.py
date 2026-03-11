@@ -15,8 +15,8 @@ class MiddleManEmbed(commands.Cog):
         if interaction.user.id not in config['whitelist'] and interaction.user.id != config['buyer']:
             return await unauthorized(interaction)
         embed = discord.Embed(
-            title="`🏆`・MiddleMan Bot",
-            description=f"Je sais pas sah laisse moi dev",
+            title="Rainy MM & Exch",
+            description="Rainymm Escrow makes your cryptocurrency trades safe and easy. We provide a secure environment for peer-to-peer deals, protecting you from fraud and scams.\n\n**How this works?**\n\nOur automated system handles everything. Funds are only released when both parties are satisfied, ensuring a fair and reliable experience for every user.\n\nSelect an asset below to start your deal.",
             color=embed_color()
         )
         view = discord.ui.View(timeout=None)

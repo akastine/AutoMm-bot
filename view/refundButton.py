@@ -6,10 +6,11 @@ from function import *
 from .refundModal import refundModal
 
 class refundButton(Button):
-    def __init__(self, filename, amount, prvKey):
+    def __init__(self, filename, amount, prvKey, crypto_type="LTC"):
         self.filename = filename
         self.amount = amount
         self.prvKey = prvKey
+        self.crypto_type = crypto_type
         super().__init__(
             style=discord.ButtonStyle.red,
             label="Refund",
@@ -20,5 +21,5 @@ class refundButton(Button):
         file = json.load(open(f"process/{self.filename}.json", 'r'))
         if interaction.user.id != file['sender']:
             return await interaction.response.send_message("You cannot refund your money yourself", ephemeral=True)
-        
-        await interaction.response.send_modal(refundModal(self.prvKey, self.amount))
+
+        await interaction.response.send_modal(refundModal(self.prvKey, self.amount, self.crypto_type))

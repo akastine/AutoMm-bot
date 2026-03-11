@@ -7,11 +7,12 @@ from .cancelButton import cancelButton
 from function import *
 
 class startModal(Modal):
-    def __init__(self, userId, bot) -> None:
+    def __init__(self, userId, bot, crypto_type="LTC") -> None:
         self.userId = userId
         self.bot = bot
+        self.crypto_type = crypto_type
         super().__init__(
-            title="Registration"
+            title=f"Registration - {crypto_type}"
         )
         
         item = TextInput(
@@ -52,14 +53,14 @@ class startModal(Modal):
         
         embed = discord.Embed(
             title=f"`👑`・{interaction.guild.name} MiddleMan Service",
-            description=f"***Informations about the deal***\n\n> **Deal Item:** *{itemValue}*\n> **Money will be given:** *{priceValue}*\n**> Description:** *```{descValue}```*",
+            description=f"***Informations about the deal***\n\n> **Cryptocurrency:** *{self.crypto_type}*\n> **Deal Item:** *{itemValue}*\n> **Money will be given:** *{priceValue}*\n**> Description:** *```{descValue}```*",
             color=embed_color()
         )
         embed.set_footer(text=footer(self.bot, uid=filename))
         view = View(timeout=None)
         view.add_item(addUserButton(self.userId, filename))
         view.add_item(cancelButton(self.userId, filename))
-        channel = await category.create_text_channel(name=f"{interaction.user.name}-mm")
+        channel = await category.create_text_channel(name=f"{interaction.user.name}-mm-{self.crypto_type.lower()}")
         await channel.set_permissions(interaction.guild.default_role, read_messages=False)
         await channel.send(embed=embed, view=view)
         await interaction.response.send_message(f"Your ticket is opened in {channel.mention}", ephemeral=True)
@@ -69,7 +70,8 @@ class startModal(Modal):
             "recever": None,
             "senderConfirm": False,
             "receverConfirm": False,
-            "rolesConfirm": 0
+            "rolesConfirm": 0,
+            "crypto_type": self.crypto_type
         }
         json.dump(payload, open(f"process/{filename}.json", 'w', encoding='utf-8'), indent=4)
         config = load_json()
@@ -80,7 +82,7 @@ class startModal(Modal):
                 if logsChannel:
                     embed = discord.Embed(
                         title="`👑`・Middleman Ticket Opened",
-                        description=f"***Informations about the deal ({channel.mention})***\n\n> **Opened by:** {interaction.user.mention}`{interaction.user.id}`\n> **Item:** {itemValue}\n> **Price:** {priceValue}",
+                        description=f"***Informations about the deal ({channel.mention})***\n\n> **Opened by:** {interaction.user.mention}`{interaction.user.id}`\n> **Cryptocurrency:** {self.crypto_type}\n> **Item:** {itemValue}\n> **Price:** {priceValue}",
                         color=embed_color()
                     )
                     embed.set_footer(text=footer(self.bot, uid=filename))

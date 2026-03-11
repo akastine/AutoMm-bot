@@ -4,5 +4,6 @@
     "recever": null,
     "senderConfirm": false,
     "receverConfirm": false,
-    "rolesConfirm": 0
+    "rolesConfirm": 0,
+    "crypto_type": "LTC"
 }

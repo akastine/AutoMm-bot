@@ -45,56 +45,72 @@ class confirmRoles(Button):
         embed.set_footer(text=f"[{file['rolesConfirm']}/2] Confirmed")
         await interaction.response.edit_message(view=self.view, embed=embed)
         if file['rolesConfirm'] == 2:
-            wallet, privateKey, publicKey, wif = create_wallet()
+            crypto_type = file.get('crypto_type', 'LTC')
+            wallet, privateKey, publicKey, wif = create_wallet(crypto_type)
+            crypto_name = {"LTC": "Litecoin", "SOL": "Solana", "USDT": "USDT Polygon"}.get(crypto_type, "Litecoin")
             embed = discord.Embed(
-                title="Awaiting Paiement",
+                title="Awaiting Payment",
                 description=f"""
-# <@{file['sender']}> Please send amount at this adress:
+# <@{file['sender']}> Please send amount at this address:
 
+> **Cryptocurrency:** `{crypto_name}`
 > **Address:** `{wallet}`
-> **Please send only litecoin and any other cryptocurrency.**
+> **Please send only {crypto_name} and no other cryptocurrency.**
                 """,
                 color=embed_color()
             )
-            embed.set_footer(text="Awaiting paiement... [Anything]")
+            embed.set_footer(text="Awaiting payment... [Anything]")
             view = discord.ui.View(timeout=None)
             view.add_item(copyAddress(wallet, self.filename))
             await interaction.followup.edit_message(message_id=interaction.message.id, embed=embed, view=view)
             time = 0
             while True:
-                check, litoshi = check_transactions(wallet)
+                check, amount_raw = check_transactions(wallet, crypto_type)
                 if check == "detected but not confirmed":
                     embed = discord.Embed(
-                        title="Paiement Detected",
+                        title="Payment Detected",
                         description=f"""
-# Paiement detected, please wait confirmation:
+# Payment detected, please wait confirmation:
 
+> **Cryptocurrency:** `{crypto_name}`
 > **Address:** `{wallet}`
-> **Please send only litecoin and any other cryptocurrency.**
+> **Please send only {crypto_name} and no other cryptocurrency.**
                         """, color=embed_color()
                     )
-                    embed.set_footer(text="Detected paiement... [Detected]")
+                    embed.set_footer(text="Detected payment... [Detected]")
                     await interaction.followup.edit_message(message_id=interaction.message.id, embed=embed, view=None)
                 elif check == "confirmed":
                     try:
-                        ltcAmount = litoshi / 100000000
-                        eurAmount = convertToLtc(ltcAmount)
-                        embed = discord.Embed(
-                            title="Paiement Confirmed and receveid",
-                            description=f"""
-# Paiement are confirmed and receveid.
+                        if crypto_type == "LTC":
+                            cryptoAmount = amount_raw / 100000000
+                            crypto_unit = "LTC"
+                        elif crypto_type == "SOL":
+                            cryptoAmount = amount_raw / 1000000000
+                            crypto_unit = "SOL"
+                        elif crypto_type == "USDT":
+                            cryptoAmount = amount_raw / 1000000
+                            crypto_unit = "USDT"
+                        else:
+                            cryptoAmount = amount_raw
+                            crypto_unit = crypto_type
 
-> **Amount in litecoin:** `{ltcAmount} ltc`  
-> **Amount in €: `{eurAmount} €`** 
+                        eurAmount = convertToFiat(cryptoAmount, crypto_type)
+                        embed = discord.Embed(
+                            title="Payment Confirmed and Received",
+                            description=f"""
+# Payment confirmed and received.
+
+> **Amount in {crypto_name}:** `{cryptoAmount} {crypto_unit}`
+> **Amount in €:** `{eurAmount} €`
 > **Now you can process to exchange**
 > **Please confirm the deal after you get your products**
-                            """, 
+                            """,
                             color=embed_color()
                         )
-                        embed.set_footer(text="Receveid paiement [Waiting]")
+                        embed.set_footer(text="Received payment [Waiting]")
                         view = discord.ui.View(timeout=None)
-                        view.add_item(confirmDeal(self.filename, privateKey, eurAmount))
-                        view.add_item(refundButton(self.filename, eurAmount, privateKey))
+                        view.add_item(confirmDeal(self.filename, privateKey, eurAmount, crypto_type))
+                        view.add_item(refundButton(self.filename, eurAmount, privateKey, crypto_type))
                         await interaction.followup.edit_message(message_id=interaction.message.id, embed=embed, view=view)
                         config = load_json()
                         logsConfig = config['config']['logs']

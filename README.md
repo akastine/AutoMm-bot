@@ -1,5 +1,5 @@
-# Discord Auto-MiddleMan Bot !
-The most secure discord auto middleman bot for your discord market server ! With somes features
+# Discord Auto-MiddleMan Bot
+The most secure discord auto middleman bot for your discord market server with multi-cryptocurrency support
 
 ## Table Of Content
 
@@ -30,9 +30,12 @@ After the installation you need to configure the `config.json` file
     "developer": "scarlxrd1337", -> Dont be a skid lmao
     "token": "token", -> Your bot token
     "buyer": null, -> Your discord Id
+    "developer_role_id": null, -> Developer role ID for /release command
     "color": "hex_color", -> Embeds Colors (Hex Code)
     "footer": "Your footer", -> Embeds Footer (strings)
-    "blockcypher": "blockcypher", -> Blockcypher api key 
+    "blockcypher": "blockcypher api key", -> Blockcypher API key for Litecoin
+    "solana_api_key": "solana api key", -> Solana API key (to be configured)
+    "polygon_api_key": "polygon api key", -> Polygon API key for USDT (to be configured)
     "whitelist": [], -> Don't need to change (using with commands)
     "scammers": [], -> Useless
     "config": {
@@ -46,6 +49,16 @@ After the installation you need to configure the `config.json` file
     }
 }
 ```
+
+## Features
+
+- Multi-cryptocurrency support: Litecoin (LTC), Solana (SOL), and USDT Polygon
+- Automatic escrow system
+- Secure wallet generation
+- Transaction monitoring and confirmation
+- Developer override command for stuck funds
+- Logging system for all transactions
+- Role-based access control
 
 ## Starting
 <div id="start"></div>

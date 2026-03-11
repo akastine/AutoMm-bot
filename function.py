@@ -37,59 +37,108 @@ def gen_uid(lenght=3, long=4) -> str:
     filename = filename[:-1]
     return filename
 
-def create_wallet() -> (tuple[Any, Any, Any, Any] | tuple[Literal['Error'], None, None, None]):
+def create_wallet(crypto_type="LTC") -> (tuple[Any, Any, Any, Any] | tuple[Literal['Error'], None, None, None]):
     config = load_json()
-    response = requests.post("https://api.blockcypher.com/v1/ltc/main/addrs", params={"token": config['blockcypher']})
-    print(response.status_code)
-    if response.status_code == 201:
-        data = response.json()
-        print(data)
-        address = data['address']
-        private = data['private']
-        public = data['public']
-        wif = data['wif']  
-        return address, private, public, wif
+
+    if crypto_type == "LTC":
+        response = requests.post("https://api.blockcypher.com/v1/ltc/main/addrs", params={"token": config['blockcypher']})
+        print(response.status_code)
+        if response.status_code == 201:
+            data = response.json()
+            print(data)
+            address = data['address']
+            private = data['private']
+            public = data['public']
+            wif = data['wif']
+            return address, private, public, wif
+        else:
+            return "Error", None, None, None
+    elif crypto_type == "SOL":
+        return "Error", None, None, None
+    elif crypto_type == "USDT":
+        return "Error", None, None, None
     else:
         return "Error", None, None, None
 
-def check_transactions(address) -> (tuple[Literal['detected but not confirmed'], Literal[0]] | tuple[Literal['confirmed'], Any] | tuple[Literal['balance are null'], Literal[0]] | tuple[Literal['any'], Literal[0]] | tuple[Literal['error'], Literal[0]] | None):
-    url = f'https://api.blockcypher.com/v1/ltc/main/addrs/{address}/full'
-    response = requests.get(url)
-    if response.status_code == 200:
-        data = response.json()
-        print(data)
-        if 'txs' in data:
-            if data['unconfirmed_balance'] != 0 and data['balance'] == 0:
-                return "detected but not confirmed", 0
-            if data['balance'] != 0 and data['unconfirmed_balance'] == 0:
-                return "confirmed", data['balance']
-            if data['balance'] == 0 and data['unconfirmed_balance'] == 0:
-                return "balance are null", 0
+def check_transactions(address, crypto_type="LTC") -> (tuple[Literal['detected but not confirmed'], Literal[0]] | tuple[Literal['confirmed'], Any] | tuple[Literal['balance are null'], Literal[0]] | tuple[Literal['any'], Literal[0]] | tuple[Literal['error'], Literal[0]] | None):
+    if crypto_type == "LTC":
+        url = f'https://api.blockcypher.com/v1/ltc/main/addrs/{address}/full'
+        response = requests.get(url)
+        if response.status_code == 200:
+            data = response.json()
+            print(data)
+            if 'txs' in data:
+                if data['unconfirmed_balance'] != 0 and data['balance'] == 0:
+                    return "detected but not confirmed", 0
+                if data['balance'] != 0 and data['unconfirmed_balance'] == 0:
+                    return "confirmed", data['balance']
+                if data['balance'] == 0 and data['unconfirmed_balance'] == 0:
+                    return "balance are null", 0
+            else:
+                return "any", 0
         else:
-            return "any", 0
+            return "error", 0
+    elif crypto_type == "SOL":
+        return "error", 0
+    elif crypto_type == "USDT":
+        return "error", 0
     else:
         return "error", 0
     
-def send_to_address(prvKey, toAddress) -> (Any | None):
+def send_to_address(prvKey, toAddress, crypto_type="LTC") -> (Any | None):
     config = load_json()
-    a = blockcypher.simple_spend(
-        from_privkey=prvKey, 
-        to_address=toAddress,
-        api_key=config['blockcypher'], 
-        coin_symbol="ltc",
-        to_satoshis=-1
-    )
-    return a
-
-def convertToLtc(amount) -> (Any | None):
-    url = 'https://api.coingecko.com/api/v3/simple/price?ids=litecoin&vs_currencies=eur'
-    response = requests.get(url)
-    
-    if response.status_code == 200:
-        data = response.json()
-        price = data['litecoin']['eur']
-        converted = amount * price
-        return converted
+    if crypto_type == "LTC":
+        a = blockcypher.simple_spend(
+            from_privkey=prvKey,
+            to_address=toAddress,
+            api_key=config['blockcypher'],
+            coin_symbol="ltc",
+            to_satoshis=-1
+        )
+        return a
+    elif crypto_type == "SOL":
+        return None
+    elif crypto_type == "USDT":
+        return None
     else:
-        print(response.text)
+        return None
+
+def convertToFiat(amount, crypto_type="LTC") -> (Any | None):
+    if crypto_type == "LTC":
+        url = 'https://api.coingecko.com/api/v3/simple/price?ids=litecoin&vs_currencies=eur'
+        response = requests.get(url)
+
+        if response.status_code == 200:
+            data = response.json()
+            price = data['litecoin']['eur']
+            converted = amount * price
+            return converted
+        else:
+            print(response.text)
+            return None
+    elif crypto_type == "SOL":
+        url = 'https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=eur'
+        response = requests.get(url)
+
+        if response.status_code == 200:
+            data = response.json()
+            price = data['solana']['eur']
+            converted = amount * price
+            return converted
+        else:
+            print(response.text)
+            return None
+    elif crypto_type == "USDT":
+        url = 'https://api.coingecko.com/api/v3/simple/price?ids=tether&vs_currencies=eur'
+        response = requests.get(url)
+
+        if response.status_code == 200:
+            data = response.json()
+            price = data['tether']['eur']
+            converted = amount * price
+            return converted
+        else:
+            print(response.text)
+            return None
+    else:
         return None
